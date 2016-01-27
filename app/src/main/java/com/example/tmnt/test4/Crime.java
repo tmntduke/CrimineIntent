@@ -15,11 +15,12 @@ public class Crime {
     private boolean solved;
 
     public Crime() {
+        crimeId = UUID.randomUUID();
     }
 
-    public Crime(UUID crimeId, String title, String content,Date date,boolean solved) {
-        this.date=date;
-        this.solved=solved;
+    public Crime(UUID crimeId, String title, String content, Date date, boolean solved) {
+        this.date = date;
+        this.solved = solved;
         this.crimeId = crimeId;
         this.title = title;
         this.content = content;
