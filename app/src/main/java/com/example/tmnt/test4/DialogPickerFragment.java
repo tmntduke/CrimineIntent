@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
@@ -16,6 +17,7 @@ import android.widget.DatePicker;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.UUID;
 
 /**
  * Created by tmnt on 2016/1/27.
@@ -40,11 +42,13 @@ public class DialogPickerFragment extends DialogFragment {
         Intent intent = new Intent();
         intent.putExtra(EXTRA_DATE, date);
         getTargetFragment().onActivityResult(getTargetRequestCode(), resultCode, intent);
+        //startActivity(intent);
 
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        //final UUID uuid = (UUID) getArguments().getSerializable("returnId");
         mDate = (Date) getArguments().getSerializable(EXTRA_DATE);
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_date, null, false);
         DatePicker datePicker = (DatePicker) view.findViewById(R.id.dialog_date);
@@ -58,12 +62,18 @@ public class DialogPickerFragment extends DialogFragment {
             public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                 date = new GregorianCalendar(year, monthOfYear, dayOfMonth).getTime();
                 getArguments().putSerializable(EXTRA_DATE, date);
+                //CrimeLab.getInstance(getActivity()).getCrime(uuid).setDate(date);
+                Log.i("date",date.toString());
             }
         });
         return new AlertDialog.Builder(getActivity()).setView(view).setTitle("DateSet").setPositiveButton("ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(getActivity(), CrimeListActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 sendResult(Activity.RESULT_OK);
+                startActivity(intent);
+                //sendResult(Activity.RESULT_OK);
+
             }
         }).create();
     }

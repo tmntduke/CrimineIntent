@@ -1,6 +1,10 @@
 package com.example.tmnt.test4;
 
 import android.content.Context;
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,6 +18,8 @@ public class CrimeLab {
     private static CrimeLab sCrime;
     private Context context;
     private ArrayList<Crime> list;
+    private CrimeIntentJSONobject jsoNobject;
+    private String fileName = "crime.json";
 
     /**
      * @param context 完成启动Activity等
@@ -21,14 +27,23 @@ public class CrimeLab {
      */
     private CrimeLab(Context context) {
         this.context = context;
-        list = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            Crime c = new Crime();
-            c.setTitle("Crime #" + i);
-            c.setSolved(i % 2 == 0);
-            c.setDate(new Date(System.currentTimeMillis()));
-            list.add(c);
+        //list = new ArrayList<>();
+//        for (int i = 0; i < 100; i++) {
+//            Crime c = new Crime();
+//            c.setTitle("Crime #" + i);
+//            c.setSolved(i % 2 == 0);
+//            c.setDate(new Date(System.currentTimeMillis()));
+//            list.add(c);
+//        }
+        jsoNobject = new CrimeIntentJSONobject(context, fileName);
+        try {
+            list = jsoNobject.loadCrime();
+        } catch (Exception e) {
+            list = new ArrayList<>();
+            Log.i("Crime", "loading error");
         }
+
+
     }
 
     /**
@@ -51,6 +66,13 @@ public class CrimeLab {
         return sCrime;
     }
 
+    public void addCrime(Crime c) {
+        list.add(c);
+    }
+
+    public void deleteCrime(Crime crime){
+        list.remove(crime);
+    }
     /**
      * 获得指定Id的Crime对象
      *
@@ -65,4 +87,16 @@ public class CrimeLab {
         }
         return null;
     }
+
+    public boolean saveCrimeLab() {
+        try {
+            jsoNobject.saveCrime(list);
+            Log.i("Crime", "crime save success");
+            return true;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

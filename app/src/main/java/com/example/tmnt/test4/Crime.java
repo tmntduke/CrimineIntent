@@ -1,5 +1,10 @@
 package com.example.tmnt.test4;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
@@ -16,6 +21,17 @@ public class Crime {
 
     public Crime() {
         crimeId = UUID.randomUUID();
+    }
+
+    public Crime(JSONObject jsonObject) throws JSONException, ParseException {
+        crimeId = UUID.fromString(jsonObject.getString("id"));
+        if (jsonObject.getString("title") != null) {
+            title = jsonObject.getString("title");
+        }
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
+        Date d = simpleDateFormat.parse(jsonObject.getString("date"));
+        date = d;
+        solved = jsonObject.getBoolean("solved");
     }
 
     public Crime(UUID crimeId, String title, String content, Date date, boolean solved) {
@@ -64,5 +80,15 @@ public class Crime {
 
     public void setSolved(boolean solved) {
         this.solved = solved;
+    }
+
+    public JSONObject toJso() throws JSONException {
+        JSONObject jsonObjec = new JSONObject();
+        jsonObjec.put("id", crimeId.toString());
+        jsonObjec.put("title", title);
+        jsonObjec.put("content", content);
+        jsonObjec.put("date", date);
+        jsonObjec.put("solve", solved);
+        return jsonObjec;
     }
 }

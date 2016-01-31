@@ -2,7 +2,9 @@ package com.example.tmnt.test4;
 
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,6 +12,7 @@ import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -17,6 +20,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -30,7 +34,7 @@ public class CriminaFragment extends Fragment {
     private CheckBox isSolved;
     //private EditText crimeTitle;
     private UUID id;
-    private static int REQUEST = 0;
+    public static int REQUEST = 0;
     private CrimeLab lab;
 
     @Override
@@ -64,6 +68,7 @@ public class CriminaFragment extends Fragment {
 
             }
         });
+        getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
 //        Date date = new Date(System.currentTimeMillis());
 //        crime.setDate(date);
 //        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss EEEE");
@@ -72,15 +77,30 @@ public class CriminaFragment extends Fragment {
         btnDate = (Button) view.findViewById(R.id.crimineDate);
         isSolved = (CheckBox) view.findViewById(R.id.isSolved);
         //btnDate.setText(s);
-        updateDate(crime.getDate());
+        if (CrimeLab.getInstance(getActivity()).getCrimes().size() == 1) {
+            updateDate(new Date(System.currentTimeMillis()));
+        } else {
+            updateDate(crime.getDate());
+        }
+
         btnDate.setEnabled(true);
+
         btnDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentManager manager = getActivity().getSupportFragmentManager();
+                DialogPickerFragment fragment;
                 //DialogPickerFragment fragment = new DialogPickerFragment();
-                DialogPickerFragment fragment = DialogPickerFragment.newInstance(crime.getDate());
+                if (CrimeLab.getInstance(getActivity()).getCrimes().size() == 1) {
+                    fragment = DialogPickerFragment.newInstance(new Date(System.currentTimeMillis()));
+                } else {
+                    fragment = DialogPickerFragment.newInstance(crime.getDate());
+                }
+
                 fragment.setTargetFragment(CriminaFragment.this, REQUEST);
+                //Bundle bundle=new Bundle();
+                //bundle.putSerializable("returnId",crime.getCrimeId());
+                //fragment.setArguments(bundle);
                 fragment.show(manager, "date");
             }
         });
@@ -108,21 +128,60 @@ public class CriminaFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Called when the Fragment is no longer resumed.  This is generally
+     * tied to {@link Activity#onPause() Activity.onPause} of the containing
+     * Activity's lifecycle.
+     */
+    @Override
+    public void onPause() {
+        super.onPause();
+        CrimeLab.getInstance(getActivity()).saveCrimeLab();
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         //super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == REQUEST) {
+            if (requestCode == CriminaFragment.REQUEST) {
                 Date date = (Date) data.getSerializableExtra(DialogPickerFragment.EXTRA_DATE);
-                //crime.setDate(date);
-                updateDate(date);
+                crime.setDate(date);
+                String s = CriminaFragment.getSimpleDate(date);
+                //((MyAdapter) getListAdapter()).notifyDataSetChanged();
+                //updateDate(date);
             }
         }
     }
 
+    /**
+     * This hook is called whenever an item in your options menu is selected.
+     * The default implementation simply returns false to have the normal
+     * processing happen (calling the item's Runnable or sending a message to
+     * its Handler as appropriate).  You can use this method for any items
+     * for which you would like to do processing without those other
+     * facilities.
+     * <p>
+     * <p>Derived classes should call through to the base class for it to
+     * perform the default menu handling.
+     *
+     * @param item The menu item that was selected.
+     * @return boolean Return false to allow normal menu processing to
+     * proceed, true to consume it here.
+     * @see #onCreateOptionsMenu
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+    }
+
     public void updateDate(Date date) {
-        String s = getSimpleDate(crime.getDate());
+        String s = getSimpleDate(date);
         btnDate.setText(s);
     }
 }
